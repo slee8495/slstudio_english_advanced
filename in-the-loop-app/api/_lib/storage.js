@@ -34,3 +34,33 @@ export async function setCachedDay(dateKey, data) {
     // best-effort cache only — a failure here should never break the request
   }
 }
+
+function audioPathFor(key) {
+  return `in-the-loop/audio/${key}.mp3`;
+}
+
+export async function getCachedAudio(key) {
+  if (!hasBlobToken()) return null;
+  try {
+    const info = await head(audioPathFor(key));
+    const res = await fetch(info.url, { cache: "no-store" });
+    if (!res.ok) return null;
+    return new Uint8Array(await res.arrayBuffer());
+  } catch {
+    return null;
+  }
+}
+
+export async function setCachedAudio(key, bytes) {
+  if (!hasBlobToken()) return;
+  try {
+    await put(audioPathFor(key), bytes, {
+      access: "public",
+      contentType: "audio/mpeg",
+      addRandomSuffix: false,
+      allowOverwrite: true,
+    });
+  } catch {
+    // best-effort cache only
+  }
+}

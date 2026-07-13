@@ -1,10 +1,11 @@
-import { generateObject, generateText } from "ai";
+import { gateway, generateObject, generateSpeech } from "ai";
 import { z } from "zod";
 
 // Routed through Vercel AI Gateway (OIDC auth once the project is linked and
 // AI Gateway is enabled — no manual API key needed on Vercel deployments).
 const DAILY_MODEL = "anthropic/claude-sonnet-5";
 const QUICK_MODEL = "anthropic/claude-haiku-4.5";
+const SPEECH_MODEL = "openai/tts-1-hd";
 
 const dailyContentSchema = z.object({
   language: z.object({
@@ -70,18 +71,37 @@ export async function generateDailyContent({ dayNum, dateKey, trendContext }) {
   return { source: "ai", dayNum, dateKey, ...object };
 }
 
+const gapExplanationSchema = z.object({
+  correctedPhrase: z
+    .string()
+    .describe(
+      "The clean, correctly-spelled English form of what the user most likely meant — fix typos/spacing, do not translate to Korean. If the input was already correct, return it unchanged."
+    ),
+  explanation: z
+    .string()
+    .describe(
+      "Korean explanation: meaning/nuance, who uses it, one short English example sentence. 5-7 sentences max."
+    ),
+});
+
 export async function explainGapPhrase(phrase) {
-  const { text } = await generateText({
+  const { object } = await generateObject({
     model: QUICK_MODEL,
-    prompt: `사용자(미국 거주 13년차 한국 출신 1세 이민자, 영어 상급자)가 실생활에서 듣거나 보고 무슨 뜻인지 몰랐던 표현/레퍼런스를 기록했습니다: "${phrase}"
+    schema: gapExplanationSchema,
+    prompt: `사용자(미국 거주 13년차 한국 출신 1세 이민자, 영어 상급자)가 실생활에서 듣거나 보고 무슨 뜻인지 몰랐던 표현/레퍼런스를 기록했습니다. 사용자가 급하게 입력하느라 오타나 띄어쓰기 오류가 있을 수 있습니다: "${phrase}"
 
-이걸 한국어로 설명해주세요. 다음을 포함하되 전체 5~7문장 이내로 짧게:
-- 정확한 뜻과 실제 뉘앙스
-- 어떤 맥락/누가 주로 쓰는지
-- 짧은 영어 예문 1개
-- 정치적으로 민감한 내용이면 중립적으로 사실만 전달
-
-불필요한 인사말이나 서론 없이 바로 설명으로 시작하세요.`,
+1. correctedPhrase: 사용자가 실제로 의도했을 법한 올바른 영어 표현으로 고쳐주세요 (오타 교정만, 이미 맞으면 그대로).
+2. explanation: 한국어로 설명 — 정확한 뜻과 실제 뉘앙스, 어떤 맥락/누가 주로 쓰는지, 짧은 영어 예문 1개. 정치적으로 민감한 내용이면 중립적으로 사실만 전달. 인사말/서론 없이 바로 설명으로 시작, 5~7문장 이내.`,
   });
-  return text.trim();
+  return object;
+}
+
+export async function synthesizeSpeech(text) {
+  const { audio } = await generateSpeech({
+    model: gateway.speech(SPEECH_MODEL),
+    text,
+    voice: "nova",
+    outputFormat: "mp3",
+  });
+  return { bytes: audio.uint8Array, mediaType: audio.mediaType || "audio/mpeg" };
 }

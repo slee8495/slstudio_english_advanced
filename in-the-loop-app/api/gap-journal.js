@@ -13,8 +13,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    const explanation = await explainGapPhrase(phrase);
-    res.status(200).json({ explanation });
+    const { correctedPhrase, explanation } = await explainGapPhrase(phrase);
+    res.status(200).json({ correctedPhrase, explanation });
   } catch (err) {
     res.status(500).json({ error: "explain failed", detail: String(err?.message || err) });
   }

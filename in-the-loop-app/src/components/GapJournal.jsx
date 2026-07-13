@@ -80,32 +80,47 @@ export default function GapJournal({ entries, onAdd, onRemove }) {
 
               {isOpen && (
                 <div className="space-y-3 border-t border-gray-100 px-4 py-3">
-                  {dayEntries.map((entry) => (
-                    <div key={entry.id} className="rounded-xl bg-gray-50 p-3">
-                      <div className="flex items-start justify-between gap-2">
-                        <SpeakableText
-                          as="p"
-                          text={entry.phrase}
-                          className="font-semibold text-gray-900"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => onRemove(entry.id)}
-                          className="shrink-0 text-xs text-gray-400 active:text-red-500"
-                          aria-label="삭제"
-                        >
-                          🗑
-                        </button>
+                  {dayEntries.map((entry) => {
+                    const spoken = entry.correctedPhrase || entry.phrase;
+                    const showOriginal = entry.correctedPhrase && entry.correctedPhrase !== entry.phrase;
+                    return (
+                      <div key={entry.id} className="rounded-xl bg-gray-50 p-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <SpeakableText
+                              as="p"
+                              text={spoken}
+                              className="font-semibold text-gray-900"
+                            />
+                            {showOriginal && (
+                              <p className="mt-0.5 text-xs text-gray-400">
+                                내가 입력한 내용: {entry.phrase}
+                              </p>
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (window.confirm(`"${spoken}" 항목을 삭제할까요?`)) {
+                                onRemove(entry.id);
+                              }
+                            }}
+                            className="shrink-0 text-xs text-gray-400 active:text-red-500"
+                            aria-label="삭제"
+                          >
+                            🗑
+                          </button>
+                        </div>
+                        {entry.loading ? (
+                          <p className="mt-2 text-sm text-gray-400">설명 생성 중...</p>
+                        ) : (
+                          <p className="mt-2 whitespace-pre-line text-sm text-gray-600">
+                            {entry.explanation}
+                          </p>
+                        )}
                       </div>
-                      {entry.loading ? (
-                        <p className="mt-2 text-sm text-gray-400">설명 생성 중...</p>
-                      ) : (
-                        <p className="mt-2 whitespace-pre-line text-sm text-gray-600">
-                          {entry.explanation}
-                        </p>
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

@@ -80,9 +80,17 @@ export function useLoopState() {
 
   async function addGapEntry(phrase, todayKey) {
     const id = crypto.randomUUID();
-    const optimistic = { id, phrase, explanation: null, loading: true, createdDateKey: todayKey };
+    const optimistic = {
+      id,
+      phrase,
+      correctedPhrase: null,
+      explanation: null,
+      loading: true,
+      createdDateKey: todayKey,
+    };
     setState((prev) => ({ ...prev, gapJournal: [optimistic, ...prev.gapJournal] }));
 
+    let correctedPhrase = phrase;
     let explanation = "설명을 불러오지 못했어요. 나중에 다시 시도해 주세요.";
     try {
       const res = await fetch("/api/gap-journal", {
@@ -92,6 +100,7 @@ export function useLoopState() {
       });
       if (res.ok) {
         const data = await res.json();
+        correctedPhrase = data.correctedPhrase || phrase;
         explanation = data.explanation;
       }
     } catch {
@@ -101,14 +110,14 @@ export function useLoopState() {
     setState((prev) => ({
       ...prev,
       gapJournal: prev.gapJournal.map((e) =>
-        e.id === id ? { ...e, explanation, loading: false } : e
+        e.id === id ? { ...e, correctedPhrase, explanation, loading: false } : e
       ),
       reviewPool: [
         ...prev.reviewPool,
         {
           id, // shared with the gap journal entry so deleting one removes both
           kind: "gap",
-          front: phrase,
+          front: correctedPhrase,
           back: explanation,
           box: 0,
           nextReviewDateKey: nextReviewDateKey(todayKey, 0),

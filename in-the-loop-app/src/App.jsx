@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { dayNumberFor, todayDayNumber, todayKey } from "./data/curriculum";
+import { pruneOldContentCache } from "./utils/storage";
 import { useLoopState } from "./hooks/useLoopState";
 import { useDailyContent } from "./hooks/useDailyContent";
 import Home from "./components/Home";
@@ -24,6 +25,10 @@ export default function App() {
     [viewedDateKey]
   );
   const isToday = viewedDateKey === todayKey();
+
+  useEffect(() => {
+    pruneOldContentCache();
+  }, []);
 
   const {
     progress,
