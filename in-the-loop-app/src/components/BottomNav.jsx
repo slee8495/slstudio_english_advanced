@@ -7,7 +7,7 @@ const TABS = [
 
 export default function BottomNav({ active, onChange, reviewBadge }) {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-10 border-t border-gray-200 bg-white/95 backdrop-blur">
+    <nav className="fixed inset-x-0 bottom-0 z-10 border-t border-gray-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
       <div className="mx-auto flex max-w-md">
         {TABS.map((tab) => (
           <button

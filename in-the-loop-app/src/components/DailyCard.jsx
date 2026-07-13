@@ -1,14 +1,23 @@
 import { useState } from "react";
 import { CARD_META } from "../data/curriculum";
+import SpeakableText from "./SpeakableText";
 
 function CardBody({ cardType, content }) {
   if (cardType === "language") {
     return (
       <div className="space-y-2 text-left">
-        <p className="text-lg font-semibold text-loop-900">{content.phrase}</p>
+        <SpeakableText
+          as="p"
+          text={content.phrase}
+          className="text-lg font-semibold text-loop-900"
+        />
         <p className="text-sm text-gray-700">{content.meaning}</p>
         <p className="text-sm text-gray-600">{content.nuance}</p>
-        <p className="text-sm italic text-loop-700">&ldquo;{content.example}&rdquo;</p>
+        <SpeakableText
+          as="p"
+          text={content.example}
+          className="text-sm italic text-loop-700"
+        />
         <p className="text-xs text-amber-700">⚠️ {content.avoidNote}</p>
       </div>
     );
@@ -16,10 +25,18 @@ function CardBody({ cardType, content }) {
   if (cardType === "slang") {
     return (
       <div className="space-y-2 text-left">
-        <p className="text-lg font-semibold text-loop-900">{content.term}</p>
+        <SpeakableText
+          as="p"
+          text={content.term}
+          className="text-lg font-semibold text-loop-900"
+        />
         <p className="text-sm text-gray-700">{content.meaning}</p>
         <p className="text-sm text-gray-600">{content.usedBy}</p>
-        <p className="text-sm italic text-loop-700">&ldquo;{content.example}&rdquo;</p>
+        <SpeakableText
+          as="p"
+          text={content.example}
+          className="text-sm italic text-loop-700"
+        />
         <p className="text-xs text-amber-700">⚠️ {content.awkwardIf}</p>
       </div>
     );
@@ -27,10 +44,18 @@ function CardBody({ cardType, content }) {
   if (cardType === "news") {
     return (
       <div className="space-y-2 text-left">
-        <p className="text-lg font-semibold text-loop-900">{content.headline}</p>
+        <SpeakableText
+          as="p"
+          text={content.headline}
+          className="text-lg font-semibold text-loop-900"
+        />
         <p className="text-sm text-gray-700">{content.summary}</p>
         <p className="text-sm text-gray-600">{content.whyItMatters}</p>
-        <p className="text-sm italic text-loop-700">💬 {content.talkingPoint}</p>
+        <SpeakableText
+          as="p"
+          text={content.talkingPoint}
+          className="text-sm italic text-loop-700"
+        />
         {content.isSample && (
           <p className="text-xs text-gray-400">예시 콘텐츠 · 실시간 연동 후 매일 갱신됩니다</p>
         )}
@@ -40,10 +65,18 @@ function CardBody({ cardType, content }) {
   // popculture
   return (
     <div className="space-y-2 text-left">
-      <p className="text-lg font-semibold text-loop-900">{content.title}</p>
+      <SpeakableText
+        as="p"
+        text={content.title}
+        className="text-lg font-semibold text-loop-900"
+      />
       <p className="text-sm text-gray-700">{content.summary}</p>
       <p className="text-sm text-gray-600">{content.reference}</p>
-      <p className="text-sm italic text-loop-700">💬 {content.talkingPoint}</p>
+      <SpeakableText
+        as="p"
+        text={content.talkingPoint}
+        className="text-sm italic text-loop-700"
+      />
       {content.isSample && (
         <p className="text-xs text-gray-400">예시 콘텐츠 · 실시간 연동 후 매일 갱신됩니다</p>
       )}

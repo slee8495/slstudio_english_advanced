@@ -16,7 +16,7 @@ export default function Home({
   const doneCount = CARD_TYPES.filter((t) => dayProgress?.[t]).length;
 
   return (
-    <div className="mx-auto max-w-md px-4 pb-28 pt-6">
+    <div className="mx-auto max-w-md px-4 pb-36 pt-6">
       <header className="mb-5 flex items-center justify-between">
         <div>
           <p className="text-xs font-medium tracking-wide text-loop-600">

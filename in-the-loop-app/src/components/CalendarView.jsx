@@ -4,7 +4,7 @@ export default function CalendarView({ todayDayNum, progress, onSelectDay }) {
   const days = Array.from({ length: todayDayNum }, (_, i) => todayDayNum - i); // newest first
 
   return (
-    <div className="mx-auto max-w-md px-4 pb-28 pt-6">
+    <div className="mx-auto max-w-md px-4 pb-36 pt-6">
       <h1 className="mb-1 text-2xl font-bold text-gray-900">전체 기록</h1>
       <p className="mb-4 text-sm text-gray-500">지난 날짜는 언제든 다시 볼 수 있어요.</p>
 

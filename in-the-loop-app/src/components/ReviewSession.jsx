@@ -1,4 +1,5 @@
 import { useState } from "react";
+import SpeakableText from "./SpeakableText";
 
 const KIND_LABEL = { language: "언어", slang: "슬랭", gap: "내 갭 저널" };
 
@@ -33,14 +34,14 @@ export default function ReviewSession({ items, onResult }) {
   }
 
   return (
-    <div className="mx-auto max-w-md px-4 pb-28 pt-6">
+    <div className="mx-auto max-w-md px-4 pb-36 pt-6">
       <p className="mb-4 text-center text-xs text-gray-400">
         복습 {index + 1} / {items.length}
       </p>
 
       <div className="rounded-2xl border border-gray-200 bg-white p-6 text-center shadow-sm">
         <p className="mb-2 text-xs font-medium text-loop-600">{KIND_LABEL[item.kind]}</p>
-        <p className="text-xl font-semibold text-gray-900">{item.front}</p>
+        <SpeakableText as="p" text={item.front} className="text-xl font-semibold text-gray-900" />
 
         {revealed && (
           <p className="mt-4 whitespace-pre-line text-sm text-gray-600">{item.back}</p>

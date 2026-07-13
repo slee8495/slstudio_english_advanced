@@ -106,7 +106,7 @@ export function useLoopState() {
       reviewPool: [
         ...prev.reviewPool,
         {
-          id: crypto.randomUUID(),
+          id, // shared with the gap journal entry so deleting one removes both
           kind: "gap",
           front: phrase,
           back: explanation,
@@ -115,6 +115,14 @@ export function useLoopState() {
           createdDateKey: todayKey,
         },
       ],
+    }));
+  }
+
+  function removeGapEntry(id) {
+    setState((prev) => ({
+      ...prev,
+      gapJournal: prev.gapJournal.filter((e) => e.id !== id),
+      reviewPool: prev.reviewPool.filter((item) => !(item.kind === "gap" && item.id === id)),
     }));
   }
 
@@ -151,6 +159,7 @@ export function useLoopState() {
     dueReviewItems,
     recordReviewResult,
     addGapEntry,
+    removeGapEntry,
     streakEndingAt,
   };
 }

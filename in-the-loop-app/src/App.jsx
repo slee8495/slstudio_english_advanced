@@ -7,6 +7,7 @@ import ReviewSession from "./components/ReviewSession";
 import GapJournal from "./components/GapJournal";
 import CalendarView from "./components/CalendarView";
 import BottomNav from "./components/BottomNav";
+import ChatWidget from "./components/ChatWidget";
 
 function parseDateKeyToYMD(dateKey) {
   const [y, m, d] = dateKey.split("-").map(Number);
@@ -31,6 +32,7 @@ export default function App() {
     dueReviewItems,
     recordReviewResult,
     addGapEntry,
+    removeGapEntry,
     streakEndingAt,
   } = useLoopState();
 
@@ -54,7 +56,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-full bg-gray-50">
+    <div className="min-h-dvh bg-gray-50 pt-[env(safe-area-inset-top)]">
       {!isToday && (
         <div className="sticky top-0 z-10 flex items-center justify-between bg-amber-50 px-4 py-2 text-xs text-amber-800">
           <span>지난 기록을 보고 있어요 · Day {viewedDayNum}</span>
@@ -90,6 +92,7 @@ export default function App() {
         <GapJournal
           entries={gapJournal}
           onAdd={(phrase) => addGapEntry(phrase, todayKeyValue)}
+          onRemove={removeGapEntry}
         />
       )}
 
@@ -101,6 +104,7 @@ export default function App() {
         />
       )}
 
+      <ChatWidget context={{ dayNum: viewedDayNum, content }} />
       <BottomNav active={tab} onChange={setTab} reviewBadge={dueItems.length} />
     </div>
   );
