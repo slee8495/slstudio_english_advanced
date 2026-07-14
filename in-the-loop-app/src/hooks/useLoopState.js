@@ -3,16 +3,6 @@ import { readJSON, writeJSON } from "../utils/storage";
 import { CARD_META, CARD_TYPES } from "../data/curriculum";
 import { GRADUATED_BOX, nextBoxAfterResult, nextReviewDateKey } from "../data/reviewSchedule";
 
-const STATE_KEY = "state_v1";
-
-function loadInitial() {
-  return readJSON(STATE_KEY, {
-    progress: {}, // { [dateKey]: { language: bool, news: bool, popculture: bool, slang: bool } }
-    reviewPool: [], // [{ id, kind, front, back, box, nextReviewDateKey, createdDateKey }]
-    gapJournal: [], // [{ id, phrase, explanation, createdDateKey }]
-  });
-}
-
 function cardToReviewCard({ cardType, content }) {
   if (cardType === "language") {
     return { front: content.phrase, back: `${content.meaning}\n\n${content.nuance}` };
@@ -23,12 +13,19 @@ function cardToReviewCard({ cardType, content }) {
   return null;
 }
 
-export function useLoopState() {
-  const [state, setState] = useState(loadInitial);
+export function useLoopState(profileName) {
+  const stateKey = `state_v1_${profileName}`;
+  const [state, setState] = useState(() =>
+    readJSON(stateKey, {
+      progress: {}, // { [dateKey]: { language: bool, news: bool, popculture: bool, slang: bool } }
+      reviewPool: [], // [{ id, kind, front, back, box, nextReviewDateKey, createdDateKey }]
+      gapJournal: [], // [{ id, phrase, explanation, createdDateKey }]
+    })
+  );
 
   useEffect(() => {
-    writeJSON(STATE_KEY, state);
-  }, [state]);
+    writeJSON(stateKey, state);
+  }, [state, stateKey]);
 
   function setCardDone(dateKey, cardType, done, content) {
     setState((prev) => {

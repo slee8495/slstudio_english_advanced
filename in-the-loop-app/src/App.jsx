@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { CARD_TYPES, dayNumberFor, todayDayNumber, todayKey } from "./data/curriculum";
 import { pruneOldContentCache } from "./utils/storage";
+import { useProfile } from "./hooks/useProfile";
 import { useLoopState } from "./hooks/useLoopState";
 import { useDailyContent } from "./hooks/useDailyContent";
+import ProfileGate from "./components/ProfileGate";
 import Home from "./components/Home";
 import ReviewSession from "./components/ReviewSession";
 import GapJournal from "./components/GapJournal";
@@ -16,7 +18,7 @@ function parseDateKeyToYMD(dateKey) {
   return { y, m, d };
 }
 
-export default function App() {
+function MainApp({ profileName, onSwitchProfile }) {
   const [tab, setTab] = useState("home");
   const [viewedDateKey, setViewedDateKey] = useState(() => todayKey());
 
@@ -40,7 +42,7 @@ export default function App() {
     addGapEntry,
     removeGapEntry,
     streakEndingAt,
-  } = useLoopState();
+  } = useLoopState(profileName);
 
   const { content, loading } = useDailyContent(viewedDayNum, viewedDateKey);
 
@@ -70,6 +72,13 @@ export default function App() {
 
   return (
     <div className="min-h-dvh bg-gray-50 pt-[env(safe-area-inset-top)]">
+      <div className="flex items-center justify-between px-4 py-1 text-[11px] text-gray-400">
+        <span>{profileName} 님</span>
+        <button type="button" onClick={onSwitchProfile} className="underline">
+          프로필 변경
+        </button>
+      </div>
+
       {!isToday && (
         <div className="sticky top-0 z-10 flex items-center justify-between bg-amber-50 px-4 py-2 text-xs text-amber-800">
           <span>
@@ -125,4 +134,14 @@ export default function App() {
       <BottomNav active={tab} onChange={setTab} reviewBadge={dueItems.length} />
     </div>
   );
+}
+
+export default function App() {
+  const { profileName, setProfileName, clearProfile } = useProfile();
+
+  if (!profileName) {
+    return <ProfileGate onSubmit={setProfileName} />;
+  }
+
+  return <MainApp key={profileName} profileName={profileName} onSwitchProfile={clearProfile} />;
 }
