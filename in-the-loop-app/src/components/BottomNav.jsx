@@ -3,6 +3,7 @@ const TABS = [
   { key: "review", label: "복습", emoji: "📚" },
   { key: "gap", label: "갭 저널", emoji: "📝" },
   { key: "calendar", label: "기록", emoji: "🗓️" },
+  { key: "accent", label: "발음", emoji: "🎙️" },
 ];
 
 export default function BottomNav({ active, onChange, reviewBadge }) {

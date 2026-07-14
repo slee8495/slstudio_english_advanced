@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import SpeakableText from "./SpeakableText";
+import SpeakButton from "./SpeakButton";
 
 function groupByDate(entries) {
   const map = new Map();
@@ -114,9 +115,12 @@ export default function GapJournal({ entries, onAdd, onRemove }) {
                         {entry.loading ? (
                           <p className="mt-2 text-sm text-gray-400">설명 생성 중...</p>
                         ) : (
-                          <p className="mt-2 whitespace-pre-line text-sm text-gray-600">
-                            {entry.explanation}
-                          </p>
+                          <div className="mt-2 flex items-start gap-2">
+                            <p className="flex-1 whitespace-pre-line text-sm text-gray-600">
+                              {entry.explanation}
+                            </p>
+                            <SpeakButton text={entry.explanation} />
+                          </div>
                         )}
                       </div>
                     );

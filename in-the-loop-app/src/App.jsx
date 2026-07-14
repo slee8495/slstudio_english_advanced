@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { dayNumberFor, todayDayNumber, todayKey } from "./data/curriculum";
+import { CARD_TYPES, dayNumberFor, todayDayNumber, todayKey } from "./data/curriculum";
 import { pruneOldContentCache } from "./utils/storage";
 import { useLoopState } from "./hooks/useLoopState";
 import { useDailyContent } from "./hooks/useDailyContent";
@@ -7,6 +7,7 @@ import Home from "./components/Home";
 import ReviewSession from "./components/ReviewSession";
 import GapJournal from "./components/GapJournal";
 import CalendarView from "./components/CalendarView";
+import AccentPractice from "./components/AccentPractice";
 import BottomNav from "./components/BottomNav";
 import ChatWidget from "./components/ChatWidget";
 
@@ -47,6 +48,13 @@ export default function App() {
   const dueItems = dueReviewItems(todayKeyValue);
   const streak = streakEndingAt(todayKeyValue);
 
+  // Once today's 4 cards are all done, tomorrow opens up for early preview
+  // (selectable from the record tab) — the home screen itself still defaults
+  // to real "today" until the actual America/Los_Angeles day rolls over.
+  const todayFullyDone = CARD_TYPES.every((t) => progress[todayKeyValue]?.[t]);
+  const unlockedDayNum = todayFullyDone ? todayNum + 1 : todayNum;
+  const viewedIsFuture = viewedDateKey > todayKeyValue;
+
   function handleToggleDone(cardType, done, cardContent) {
     setCardDone(viewedDateKey, cardType, done, cardContent);
   }
@@ -64,7 +72,9 @@ export default function App() {
     <div className="min-h-dvh bg-gray-50 pt-[env(safe-area-inset-top)]">
       {!isToday && (
         <div className="sticky top-0 z-10 flex items-center justify-between bg-amber-50 px-4 py-2 text-xs text-amber-800">
-          <span>지난 기록을 보고 있어요 · Day {viewedDayNum}</span>
+          <span>
+            {viewedIsFuture ? "내일 미리보기 중이에요" : "지난 기록을 보고 있어요"} · Day {viewedDayNum}
+          </span>
           <button type="button" onClick={goToday} className="font-semibold underline">
             오늘로 돌아가기
           </button>
@@ -103,11 +113,13 @@ export default function App() {
 
       {tab === "calendar" && (
         <CalendarView
-          todayDayNum={todayNum}
+          unlockedDayNum={unlockedDayNum}
           progress={progress}
           onSelectDay={handleSelectDay}
         />
       )}
+
+      {tab === "accent" && <AccentPractice content={content} />}
 
       <ChatWidget context={{ dayNum: viewedDayNum, content }} />
       <BottomNav active={tab} onChange={setTab} reviewBadge={dueItems.length} />

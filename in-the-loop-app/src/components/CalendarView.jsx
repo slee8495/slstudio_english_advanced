@@ -1,7 +1,8 @@
-import { CARD_TYPES, dateKeyForDayNumber } from "../data/curriculum";
+import { CARD_TYPES, dateKeyForDayNumber, todayKey } from "../data/curriculum";
 
-export default function CalendarView({ todayDayNum, progress, onSelectDay }) {
-  const days = Array.from({ length: todayDayNum }, (_, i) => todayDayNum - i); // newest first
+export default function CalendarView({ unlockedDayNum, progress, onSelectDay }) {
+  const days = Array.from({ length: unlockedDayNum }, (_, i) => unlockedDayNum - i); // newest first
+  const realToday = todayKey();
 
   return (
     <div className="mx-auto max-w-md px-4 pb-36 pt-6">
@@ -11,6 +12,7 @@ export default function CalendarView({ todayDayNum, progress, onSelectDay }) {
       <div className="space-y-2">
         {days.map((dayNum) => {
           const dateKey = dateKeyForDayNumber(dayNum);
+          const isPreview = dateKey > realToday;
           const dayProgress = progress[dateKey];
           const doneCount = CARD_TYPES.filter((t) => dayProgress?.[t]).length;
           return (
@@ -18,10 +20,15 @@ export default function CalendarView({ todayDayNum, progress, onSelectDay }) {
               key={dayNum}
               type="button"
               onClick={() => onSelectDay(dayNum, dateKey)}
-              className="flex w-full items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3 text-left active:bg-gray-50"
+              className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left active:bg-gray-50 ${
+                isPreview ? "border-loop-300 bg-loop-50" : "border-gray-200 bg-white"
+              }`}
             >
               <span>
-                <span className="block text-sm font-medium text-gray-800">Day {dayNum}</span>
+                <span className="block text-sm font-medium text-gray-800">
+                  Day {dayNum}
+                  {isPreview && <span className="ml-2 text-xs text-loop-600">미리보기</span>}
+                </span>
                 <span className="block text-xs text-gray-400">{dateKey}</span>
               </span>
               <span
