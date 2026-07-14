@@ -27,13 +27,31 @@ function PracticeSentence({ label, text }) {
 
   async function startRecording() {
     setMicError(null);
+
+    if (typeof MediaRecorder === "undefined") {
+      setMicError("이 브라우저는 음성 녹음을 지원하지 않아요.");
+      return;
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
+      // Safari/iOS doesn't support webm — it records mp4/aac instead. Rather
+      // than assume a format, always read back whatever the recorder actually
+      // used (recorder.mimeType) so the Blob's label matches its real bytes.
+      const preferred = ["audio/mp4", "audio/webm", "audio/ogg"].find(
+        (t) => MediaRecorder.isTypeSupported?.(t)
+      );
+      const recorder = preferred
+        ? new MediaRecorder(stream, { mimeType: preferred })
+        : new MediaRecorder(stream);
       chunksRef.current = [];
-      recorder.ondataavailable = (e) => chunksRef.current.push(e.data);
+      recorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) chunksRef.current.push(e.data);
+      };
       recorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+        const blob = new Blob(chunksRef.current, {
+          type: recorder.mimeType || preferred || "audio/webm",
+        });
         setRecordedUrl((prev) => {
           if (prev) URL.revokeObjectURL(prev);
           return URL.createObjectURL(blob);
@@ -92,7 +110,12 @@ function PracticeSentence({ label, text }) {
         <div className="mt-3 flex items-center gap-2">
           <span className="shrink-0 text-xs text-gray-400">내 녹음</span>
           {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-          <audio controls src={recordedUrl} className="h-8 flex-1" />
+          <audio
+            controls
+            src={recordedUrl}
+            className="h-8 flex-1"
+            onError={() => setMicError("녹음 재생 중 오류가 발생했어요. 다시 녹음해보세요.")}
+          />
         </div>
       )}
     </div>
