@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { CARD_TYPES, dayNumberFor, todayDayNumber, todayKey } from "./data/curriculum";
+import { dayNumberFor, todayDayNumber, todayKey } from "./data/curriculum";
 import { pruneOldContentCache } from "./utils/storage";
 import { useProfile } from "./hooks/useProfile";
 import { useLoopState } from "./hooks/useLoopState";
@@ -50,13 +50,6 @@ function MainApp({ profileName, onSwitchProfile }) {
   const dueItems = dueReviewItems(todayKeyValue);
   const streak = streakEndingAt(todayKeyValue);
 
-  // Once today's 4 cards are all done, tomorrow opens up for early preview
-  // (selectable from the record tab) — the home screen itself still defaults
-  // to real "today" until the actual America/Los_Angeles day rolls over.
-  const todayFullyDone = CARD_TYPES.every((t) => progress[todayKeyValue]?.[t]);
-  const unlockedDayNum = todayFullyDone ? todayNum + 1 : todayNum;
-  const viewedIsFuture = viewedDateKey > todayKeyValue;
-
   function handleToggleDone(cardType, done, cardContent) {
     setCardDone(viewedDateKey, cardType, done, cardContent);
   }
@@ -81,9 +74,7 @@ function MainApp({ profileName, onSwitchProfile }) {
 
       {!isToday && (
         <div className="sticky top-0 z-10 flex items-center justify-between bg-amber-50 px-4 py-2 text-xs text-amber-800">
-          <span>
-            {viewedIsFuture ? "내일 미리보기 중이에요" : "지난 기록을 보고 있어요"} · Day {viewedDayNum}
-          </span>
+          <span>지난 기록을 보고 있어요 · Day {viewedDayNum}</span>
           <button type="button" onClick={goToday} className="font-semibold underline">
             오늘로 돌아가기
           </button>
@@ -122,7 +113,7 @@ function MainApp({ profileName, onSwitchProfile }) {
 
       {tab === "calendar" && (
         <CalendarView
-          unlockedDayNum={unlockedDayNum}
+          unlockedDayNum={todayNum}
           progress={progress}
           onSelectDay={handleSelectDay}
         />
