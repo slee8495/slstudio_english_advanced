@@ -42,7 +42,19 @@ function formatCandidates(list) {
   return list.map((t, i) => `${i + 1}. ${t}`).join("\n");
 }
 
-function buildDailyPrompt({ dayNum, dateKey, trendContext }) {
+function formatAvoidList(avoid) {
+  const lines = [
+    ["언어 표현", avoid?.languagePhrase],
+    ["슬랭", avoid?.slangTerm],
+    ["뉴스 헤드라인", avoid?.newsHeadline],
+    ["팝컬처", avoid?.popcultureTitle],
+  ]
+    .filter(([, v]) => v)
+    .map(([label, v]) => `- ${label}: ${v}`);
+  return lines.length ? lines.join("\n") : "(없음 — 직전 날짜 기록이 없습니다)";
+}
+
+function buildDailyPrompt({ dayNum, dateKey, trendContext, avoid }) {
   return `당신은 "In The Loop" 앱의 콘텐츠 생성기입니다.
 대상 사용자: 미국에 13년째 거주 중인 한국 출신 1세 이민자. 영어는 이미 업무에서 무리 없이 쓸 수 있는 상급자이며, 목표는 "미국에서 나고 자란 2세"에 가까운 언어 감각과 문화 레퍼런스를 채우는 것입니다. 기초 문법/어휘 설명은 필요 없습니다.
 
@@ -54,19 +66,23 @@ ${formatCandidates(trendContext?.news)}
 다음 실제 미국 팝컬처/엔터테인먼트 헤드라인 후보 (오늘 수집됨):
 ${formatCandidates(trendContext?.popculture)}
 
+바로 전날 사용된 항목 (아래와 동일하거나 실질적으로 같은 내용은 이번에 다시 고르지 마세요):
+${formatAvoidList(avoid)}
+
 규칙:
 1. news.headline과 popculture.title은 위 후보 목록에 있는 실제 문구를 그대로 사용하세요. 절대 새로운 사건을 지어내지 마세요. 후보가 비어 있으면 특정 날짜의 실제 사건인 것처럼 단정하지 말고 일반적인 소재로 대체하세요.
 2. 정치적으로 민감한 주제는 어느 한쪽 편을 들지 말고, 중립적으로 사실만 전달하세요.
 3. 언어(language)와 슬랭(slang) 항목은 이미 영어를 잘하는 성인이 실제로 모를 법한, 뉘앙스가 있는 표현으로 고르세요. "hello", "thank you" 같은 기초 표현은 금지.
 4. 모든 한국어 설명은 짧고 명확하게, 실무자에게 말하듯 자연스럽게 쓰세요.
-5. 매일 다른 표현/소재를 고르세요 — 뻔하고 반복적인 예시(예: "break a leg", "piece of cake")는 피하세요.`;
+5. 매일 다른 표현/소재를 고르세요 — 뻔하고 반복적인 예시(예: "break a leg", "piece of cake")는 피하세요.
+6. 위 "바로 전날 사용된 항목"과 겹치지 않게 하세요. 뉴스/팝컬처 후보 중 전날과 같은 것이 최상위라면, 후보 목록에서 그 다음으로 적절한 다른 실제 후보를 고르세요. 겹치지 않는 후보가 전혀 없다면 사실을 지어내지 말고 특정 날짜 사건으로 단정하지 않는 일반적인 소재로 대체하세요.`;
 }
 
-export async function generateDailyContent({ dayNum, dateKey, trendContext }) {
+export async function generateDailyContent({ dayNum, dateKey, trendContext, avoid }) {
   const { object } = await generateObject({
     model: DAILY_MODEL,
     schema: dailyContentSchema,
-    prompt: buildDailyPrompt({ dayNum, dateKey, trendContext }),
+    prompt: buildDailyPrompt({ dayNum, dateKey, trendContext, avoid }),
   });
   return { source: "ai", dayNum, dateKey, ...object };
 }

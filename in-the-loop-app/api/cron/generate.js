@@ -1,7 +1,8 @@
-import { todayDayNumber, todayKey } from "../../src/data/curriculum.js";
+import { todayDayNumber, todayKey, dateKeyForDayNumber } from "../../src/data/curriculum.js";
 import { getCachedDay, setCachedDay } from "../_lib/storage.js";
 import { fetchTrendCandidates } from "../_lib/trends.js";
 import { generateDailyContent } from "../_lib/ai.js";
+import { avoidFromContent } from "../_lib/avoid.js";
 
 // Triggered by Vercel Cron at day-rollover (see vercel.json) so the day's
 // content is pre-generated and cached before the user ever opens the app.
@@ -25,8 +26,14 @@ export default async function handler(req, res) {
       return;
     }
 
+    const prevDay = dayNum > 1 ? await getCachedDay(dateKeyForDayNumber(dayNum - 1)) : null;
     const trendContext = await fetchTrendCandidates();
-    const content = await generateDailyContent({ dayNum, dateKey, trendContext });
+    const content = await generateDailyContent({
+      dayNum,
+      dateKey,
+      trendContext,
+      avoid: avoidFromContent(prevDay),
+    });
     await setCachedDay(dateKey, content);
     res.status(200).json({ status: "generated", dateKey, dayNum });
   } catch (err) {
