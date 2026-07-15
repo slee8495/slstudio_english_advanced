@@ -1,4 +1,4 @@
-import { gateway, generateObject, generateSpeech } from "ai";
+import { gateway, generateObject, generateSpeech, transcribe } from "ai";
 import { z } from "zod";
 
 // Routed through Vercel AI Gateway (OIDC auth once the project is linked and
@@ -6,6 +6,9 @@ import { z } from "zod";
 const DAILY_MODEL = "anthropic/claude-sonnet-5";
 const QUICK_MODEL = "anthropic/claude-haiku-4.5";
 const SPEECH_MODEL = "openai/tts-1-hd";
+// whisper-1: more dependable language auto-detection on short clips than the
+// gpt-4o-transcribe family, which tends to mis-detect/soft-prefer one language.
+const TRANSCRIPTION_MODEL = "openai/whisper-1";
 
 const dailyContentSchema = z.object({
   language: z.object({
@@ -120,4 +123,12 @@ export async function synthesizeSpeech(text) {
     outputFormat: "mp3",
   });
   return { bytes: audio.uint8Array, mediaType: audio.mediaType || "audio/mpeg" };
+}
+
+export async function transcribeAudio(audioBytes) {
+  const { text } = await transcribe({
+    model: gateway.transcription(TRANSCRIPTION_MODEL),
+    audio: audioBytes,
+  });
+  return text;
 }
