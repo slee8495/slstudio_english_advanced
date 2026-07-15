@@ -5,12 +5,12 @@ import { getSeedDailyContent } from "../data/seedContent";
 // Cached per calendar day so revisiting the same day never re-triggers
 // generation (cost control) and past days stay reproducible.
 export function useDailyContent(dayNum, dateKey) {
-  const [content, setContent] = useState(() => readJSON(`content_${dateKey}`, null));
+  const [content, setContent] = useState(() => readJSON(`content_v2_${dateKey}`, null));
   const [loading, setLoading] = useState(!content);
 
   useEffect(() => {
     let cancelled = false;
-    const cached = readJSON(`content_${dateKey}`, null);
+    const cached = readJSON(`content_v2_${dateKey}`, null);
     if (cached) {
       setContent(cached);
       setLoading(false);
@@ -26,7 +26,7 @@ export function useDailyContent(dayNum, dateKey) {
       .then((data) => {
         if (cancelled) return;
         setContent(data);
-        writeJSON(`content_${dateKey}`, data);
+        writeJSON(`content_v2_${dateKey}`, data);
       })
       .catch(() => {
         if (cancelled) return;

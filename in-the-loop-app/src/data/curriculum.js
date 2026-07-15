@@ -29,21 +29,30 @@ function toUTCms({ y, m, d }) {
   return Date.UTC(y, m - 1, d);
 }
 
-export function dayNumberFor(dateYMD) {
-  const diffDays = Math.floor((toUTCms(dateYMD) - toUTCms(START)) / 86400000);
+export function keyToYMD(dateKey) {
+  const [y, m, d] = dateKey.split("-").map(Number);
+  return { y, m, d };
+}
+
+// startYMD anchors the day count — pass a profile's own start date so its
+// "Day 1" is when that name first appeared, not the app's original launch
+// date. Defaults to the app-wide START only for callers that genuinely have
+// no profile context (e.g. the cron job's cosmetic day label).
+export function dayNumberFor(dateYMD, startYMD = START) {
+  const diffDays = Math.floor((toUTCms(dateYMD) - toUTCms(startYMD)) / 86400000);
   return diffDays + 1;
 }
 
-export function todayDayNumber() {
-  return dayNumberFor(getReferenceToday());
+export function todayDayNumber(startYMD = START) {
+  return dayNumberFor(getReferenceToday(), startYMD);
 }
 
 export function ymdToKey({ y, m, d }) {
   return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
-export function dateKeyForDayNumber(dayNum) {
-  const ms = toUTCms(START) + (dayNum - 1) * 86400000;
+export function dateKeyForDayNumber(dayNum, startYMD = START) {
+  const ms = toUTCms(startYMD) + (dayNum - 1) * 86400000;
   const dt = new Date(ms);
   return ymdToKey({
     y: dt.getUTCFullYear(),
@@ -54,4 +63,13 @@ export function dateKeyForDayNumber(dayNum) {
 
 export function todayKey() {
   return ymdToKey(getReferenceToday());
+}
+
+// Real calendar date minus one day — used server-side to look up "yesterday's"
+// generated content regardless of any profile's day numbering, since content
+// itself is keyed by real date and shared across all profiles.
+export function previousDateKey(dateKey) {
+  const { y, m, d } = keyToYMD(dateKey);
+  const dt = new Date(toUTCms({ y, m, d }) - 86400000);
+  return ymdToKey({ y: dt.getUTCFullYear(), m: dt.getUTCMonth() + 1, d: dt.getUTCDate() });
 }

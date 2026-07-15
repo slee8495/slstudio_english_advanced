@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { dayNumberFor, todayDayNumber, todayKey } from "./data/curriculum";
+import { dayNumberFor, keyToYMD, todayDayNumber, todayKey } from "./data/curriculum";
 import { pruneOldContentCache } from "./utils/storage";
 import { useProfile } from "./hooks/useProfile";
+import { useProfileStart } from "./hooks/useProfileStart";
 import { useLoopState } from "./hooks/useLoopState";
 import { useDailyContent } from "./hooks/useDailyContent";
 import ProfileGate from "./components/ProfileGate";
@@ -13,19 +14,17 @@ import AccentPractice from "./components/AccentPractice";
 import BottomNav from "./components/BottomNav";
 import ChatWidget from "./components/ChatWidget";
 
-function parseDateKeyToYMD(dateKey) {
-  const [y, m, d] = dateKey.split("-").map(Number);
-  return { y, m, d };
-}
-
 function MainApp({ profileName, onSwitchProfile }) {
   const [tab, setTab] = useState("home");
   const [viewedDateKey, setViewedDateKey] = useState(() => todayKey());
 
-  const todayNum = todayDayNumber();
+  const startKey = useProfileStart(profileName);
+  const startYMD = useMemo(() => keyToYMD(startKey), [startKey]);
+
+  const todayNum = todayDayNumber(startYMD);
   const viewedDayNum = useMemo(
-    () => dayNumberFor(parseDateKeyToYMD(viewedDateKey)),
-    [viewedDateKey]
+    () => dayNumberFor(keyToYMD(viewedDateKey), startYMD),
+    [viewedDateKey, startYMD]
   );
   const isToday = viewedDateKey === todayKey();
 
@@ -114,6 +113,7 @@ function MainApp({ profileName, onSwitchProfile }) {
       {tab === "calendar" && (
         <CalendarView
           unlockedDayNum={todayNum}
+          startYMD={startYMD}
           progress={progress}
           onSelectDay={handleSelectDay}
         />

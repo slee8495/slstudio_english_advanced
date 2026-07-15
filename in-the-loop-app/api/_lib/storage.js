@@ -6,7 +6,7 @@ import { put, head } from "@vercel/blob";
 const hasBlobToken = () => Boolean(process.env.BLOB_READ_WRITE_TOKEN);
 
 function pathFor(dateKey) {
-  return `in-the-loop/daily/${dateKey}.json`;
+  return `in-the-loop/daily/v2/${dateKey}.json`;
 }
 
 export async function getCachedDay(dateKey) {

@@ -1,6 +1,6 @@
 import { CARD_TYPES, dateKeyForDayNumber } from "../data/curriculum";
 
-export default function CalendarView({ unlockedDayNum, progress, onSelectDay }) {
+export default function CalendarView({ unlockedDayNum, startYMD, progress, onSelectDay }) {
   const days = Array.from({ length: unlockedDayNum }, (_, i) => unlockedDayNum - i); // newest first
 
   return (
@@ -10,7 +10,7 @@ export default function CalendarView({ unlockedDayNum, progress, onSelectDay }) 
 
       <div className="space-y-2">
         {days.map((dayNum) => {
-          const dateKey = dateKeyForDayNumber(dayNum);
+          const dateKey = dateKeyForDayNumber(dayNum, startYMD);
           const dayProgress = progress[dateKey];
           const doneCount = CARD_TYPES.filter((t) => dayProgress?.[t]).length;
           return (

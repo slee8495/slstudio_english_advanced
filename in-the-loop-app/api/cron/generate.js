@@ -1,4 +1,4 @@
-import { todayDayNumber, todayKey, dateKeyForDayNumber } from "../../src/data/curriculum.js";
+import { todayDayNumber, todayKey, previousDateKey } from "../../src/data/curriculum.js";
 import { getCachedDay, setCachedDay } from "../_lib/storage.js";
 import { fetchTrendCandidates } from "../_lib/trends.js";
 import { generateDailyContent } from "../_lib/ai.js";
@@ -26,7 +26,7 @@ export default async function handler(req, res) {
       return;
     }
 
-    const prevDay = dayNum > 1 ? await getCachedDay(dateKeyForDayNumber(dayNum - 1)) : null;
+    const prevDay = await getCachedDay(previousDateKey(dateKey));
     const trendContext = await fetchTrendCandidates();
     const content = await generateDailyContent({
       dayNum,

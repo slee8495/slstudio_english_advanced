@@ -28,8 +28,8 @@ export function pruneOldContentCache(retainDays = 45) {
     const keysToRemove = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (!key || !key.startsWith(`${PREFIX}content_`)) continue;
-      const dateStr = key.slice(`${PREFIX}content_`.length);
+      if (!key || !key.startsWith(`${PREFIX}content_v2_`)) continue;
+      const dateStr = key.slice(`${PREFIX}content_v2_`.length);
       const [y, m, d] = dateStr.split("-").map(Number);
       if (!y || !m || !d) continue;
       if (Date.UTC(y, m - 1, d) < cutoff) keysToRemove.push(key);
