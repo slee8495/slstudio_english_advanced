@@ -1,12 +1,20 @@
-// Builds the "don't repeat this" list passed into the daily prompt, sourced
-// from the previous day's cached content, so back-to-back generations (e.g.
-// today + tomorrow's preview) can't converge on the same live headline pool.
-export function avoidFromContent(content) {
-  if (!content) return null;
+// Builds the "don't repeat this" context passed into the daily prompt.
+// News/language only need to dodge yesterday (they're inherently time-bound),
+// but slang and popculture pull from a wider recent-days window — otherwise
+// the model has nothing stopping it from converging on the same "safe" pick
+// (e.g. the same slang term, or the same popculture category) every few days.
+function dedupe(list) {
+  return [...new Set(list.filter(Boolean))];
+}
+
+export function buildAvoidContext(recentDays) {
+  const days = recentDays.filter(Boolean);
+  const mostRecent = days[0] || null;
   return {
-    languagePhrase: content.language?.phrase,
-    slangTerm: content.slang?.term,
-    newsHeadline: content.news?.headline,
-    popcultureTitle: content.popculture?.title,
+    languagePhrase: mostRecent?.language?.phrase,
+    newsHeadline: mostRecent?.news?.headline,
+    recentSlangTerms: dedupe(days.map((d) => d.slang?.term)),
+    recentPopcultureTitles: dedupe(days.map((d) => d.popculture?.title)),
+    recentPopcultureCategories: dedupe(days.map((d) => d.popculture?.category)),
   };
 }

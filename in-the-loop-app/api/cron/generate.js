@@ -1,8 +1,11 @@
-import { todayDayNumber, todayKey, previousDateKey } from "../../src/data/curriculum.js";
-import { getCachedDay, setCachedDay } from "../_lib/storage.js";
+import { todayDayNumber, todayKey } from "../../src/data/curriculum.js";
+import { getCachedDay, setCachedDay, getRecentCachedDays } from "../_lib/storage.js";
 import { fetchTrendCandidates } from "../_lib/trends.js";
 import { generateDailyContent } from "../_lib/ai.js";
-import { avoidFromContent } from "../_lib/avoid.js";
+import { buildAvoidContext } from "../_lib/avoid.js";
+
+// How many days back to check for repeated slang terms / popculture categories.
+const AVOID_LOOKBACK_DAYS = 10;
 
 // Triggered by Vercel Cron at day-rollover (see vercel.json) so the day's
 // content is pre-generated and cached before the user ever opens the app.
@@ -26,13 +29,13 @@ export default async function handler(req, res) {
       return;
     }
 
-    const prevDay = await getCachedDay(previousDateKey(dateKey));
+    const recentDays = await getRecentCachedDays(dateKey, AVOID_LOOKBACK_DAYS);
     const trendContext = await fetchTrendCandidates();
     const content = await generateDailyContent({
       dayNum,
       dateKey,
       trendContext,
-      avoid: avoidFromContent(prevDay),
+      avoid: buildAvoidContext(recentDays),
     });
     await setCachedDay(dateKey, content);
     res.status(200).json({ status: "generated", dateKey, dayNum });

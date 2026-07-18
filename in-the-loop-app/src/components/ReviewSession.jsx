@@ -4,10 +4,16 @@ import SpeakableText from "./SpeakableText";
 const KIND_LABEL = { language: "언어", slang: "슬랭", gap: "내 갭 저널" };
 
 export default function ReviewSession({ items, onResult }) {
+  // Freeze the due-review queue at mount time. `items` is recomputed from
+  // live state on every parent render, and grading a card immediately makes
+  // it ineligible (its nextReviewDateKey moves forward), so reading straight
+  // from the live `items` prop would shrink the list out from under our
+  // `index` mid-session and prematurely show the "all done" screen.
+  const [queue] = useState(items);
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
 
-  if (items.length === 0) {
+  if (queue.length === 0) {
     return (
       <div className="mx-auto max-w-md px-4 py-16 text-center text-gray-500">
         <p className="text-4xl">✨</p>
@@ -16,7 +22,7 @@ export default function ReviewSession({ items, onResult }) {
     );
   }
 
-  if (index >= items.length) {
+  if (index >= queue.length) {
     return (
       <div className="mx-auto max-w-md px-4 py-16 text-center text-gray-500">
         <p className="text-4xl">🎉</p>
@@ -25,7 +31,7 @@ export default function ReviewSession({ items, onResult }) {
     );
   }
 
-  const item = items[index];
+  const item = queue[index];
 
   function handleResult(remembered) {
     onResult(item.id, remembered);
@@ -36,7 +42,7 @@ export default function ReviewSession({ items, onResult }) {
   return (
     <div className="mx-auto max-w-md px-4 pb-36 pt-6">
       <p className="mb-4 text-center text-xs text-gray-400">
-        복습 {index + 1} / {items.length}
+        복습 {index + 1} / {queue.length}
       </p>
 
       <div className="rounded-2xl border border-gray-200 bg-white p-6 text-center shadow-sm">

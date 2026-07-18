@@ -45,16 +45,36 @@ function formatCandidates(list) {
   return list.map((t, i) => `${i + 1}. ${t}`).join("\n");
 }
 
-function formatAvoidList(avoid) {
-  const lines = [
-    ["언어 표현", avoid?.languagePhrase],
-    ["슬랭", avoid?.slangTerm],
-    ["뉴스 헤드라인", avoid?.newsHeadline],
-    ["팝컬처", avoid?.popcultureTitle],
+function formatAvoidContext(avoid) {
+  const singleLines = [
+    ["언어 표현 (직전)", avoid?.languagePhrase],
+    ["뉴스 헤드라인 (직전)", avoid?.newsHeadline],
   ]
     .filter(([, v]) => v)
     .map(([label, v]) => `- ${label}: ${v}`);
-  return lines.length ? lines.join("\n") : "(없음 — 직전 날짜 기록이 없습니다)";
+
+  const sections = [];
+  if (singleLines.length) sections.push(singleLines.join("\n"));
+
+  if (avoid?.recentSlangTerms?.length) {
+    sections.push(
+      `최근 며칠간 이미 사용한 슬랭 (전부 다시 고르지 마세요):\n${avoid.recentSlangTerms.map((t) => `  - ${t}`).join("\n")}`
+    );
+  }
+
+  if (avoid?.recentPopcultureTitles?.length) {
+    sections.push(
+      `최근 며칠간 이미 사용한 팝컬처 소재:\n${avoid.recentPopcultureTitles.map((t) => `  - ${t}`).join("\n")}`
+    );
+  }
+
+  if (avoid?.recentPopcultureCategories?.length) {
+    sections.push(
+      `최근 며칠간 이미 사용한 팝컬처 카테고리 (다양성을 위해 여기 없는 카테고리를 우선 고르세요): ${avoid.recentPopcultureCategories.join(", ")}`
+    );
+  }
+
+  return sections.length ? sections.join("\n\n") : "(없음 — 직전 기록이 없습니다)";
 }
 
 function buildDailyPrompt({ dayNum, dateKey, trendContext, avoid }) {
@@ -69,16 +89,17 @@ ${formatCandidates(trendContext?.news)}
 다음 실제 미국 팝컬처/엔터테인먼트 헤드라인 후보 (오늘 수집됨):
 ${formatCandidates(trendContext?.popculture)}
 
-바로 전날 사용된 항목 (아래와 동일하거나 실질적으로 같은 내용은 이번에 다시 고르지 마세요):
-${formatAvoidList(avoid)}
+최근 사용된 항목 (아래와 동일하거나 실질적으로 같은 내용은 이번에 다시 고르지 마세요):
+${formatAvoidContext(avoid)}
 
 규칙:
 1. news.headline과 popculture.title은 위 후보 목록에 있는 실제 문구를 그대로 사용하세요. 절대 새로운 사건을 지어내지 마세요. 후보가 비어 있으면 특정 날짜의 실제 사건인 것처럼 단정하지 말고 일반적인 소재로 대체하세요.
 2. 정치적으로 민감한 주제는 어느 한쪽 편을 들지 말고, 중립적으로 사실만 전달하세요.
 3. 언어(language)와 슬랭(slang) 항목은 이미 영어를 잘하는 성인이 실제로 모를 법한, 뉘앙스가 있는 표현으로 고르세요. "hello", "thank you" 같은 기초 표현은 금지.
 4. 모든 한국어 설명은 짧고 명확하게, 실무자에게 말하듯 자연스럽게 쓰세요.
-5. 매일 다른 표현/소재를 고르세요 — 뻔하고 반복적인 예시(예: "break a leg", "piece of cake")는 피하세요.
-6. 위 "바로 전날 사용된 항목"과 겹치지 않게 하세요. 뉴스/팝컬처 후보 중 전날과 같은 것이 최상위라면, 후보 목록에서 그 다음으로 적절한 다른 실제 후보를 고르세요. 겹치지 않는 후보가 전혀 없다면 사실을 지어내지 말고 특정 날짜 사건으로 단정하지 않는 일반적인 소재로 대체하세요.`;
+5. 매일 다른 표현/소재를 고르세요 — 뻔하고 반복적인 예시(예: "break a leg", "piece of cake")는 피하세요. 슬랭도 마찬가지로, 유행하는 표현 중 하나에 계속 안주하지 말고 (예: "the ick"만 반복 등) 매번 다른 표현을 폭넓게 발굴하세요.
+6. 위 "최근 사용된 항목"과 겹치지 않게 하세요. 뉴스/팝컬처 후보 중 최근 사용한 것과 같은 것이 최상위라면, 후보 목록에서 그 다음으로 적절한 다른 실제 후보를 고르세요. 겹치지 않는 후보가 전혀 없다면 사실을 지어내지 말고 특정 날짜 사건으로 단정하지 않는 일반적인 소재로 대체하세요.
+7. popculture.category는 매일 다양하게 순환시키세요 — music, sports, meme, celebrity, tv, movie, other를 골고루 다루고, 위에 나열된 "최근 사용된 팝컬처 카테고리"에 없는 카테고리를 우선적으로 고르세요. 최근 실제 뉴스 후보 중에서 그 카테고리에 맞는 게 없다면 억지로 끼워 맞추지 말고 그중 가장 적절한 후보를 고르되, 여러 날에 걸쳐 카테고리가 자연스럽게 골고루 섞이도록 하세요.`;
 }
 
 export async function generateDailyContent({ dayNum, dateKey, trendContext, avoid }) {

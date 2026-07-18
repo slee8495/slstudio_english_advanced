@@ -1,8 +1,10 @@
-import { previousDateKey } from "../src/data/curriculum.js";
-import { getCachedDay, setCachedDay } from "./_lib/storage.js";
+import { getCachedDay, setCachedDay, getRecentCachedDays } from "./_lib/storage.js";
 import { fetchTrendCandidates } from "./_lib/trends.js";
 import { generateDailyContent } from "./_lib/ai.js";
-import { avoidFromContent } from "./_lib/avoid.js";
+import { buildAvoidContext } from "./_lib/avoid.js";
+
+// How many days back to check for repeated slang terms / popculture categories.
+const AVOID_LOOKBACK_DAYS = 10;
 
 export default async function handler(req, res) {
   const day = Number(req.query?.day);
@@ -19,13 +21,13 @@ export default async function handler(req, res) {
       return;
     }
 
-    const prevDay = await getCachedDay(previousDateKey(date));
+    const recentDays = await getRecentCachedDays(date, AVOID_LOOKBACK_DAYS);
     const trendContext = await fetchTrendCandidates();
     const content = await generateDailyContent({
       dayNum: day,
       dateKey: date,
       trendContext,
-      avoid: avoidFromContent(prevDay),
+      avoid: buildAvoidContext(recentDays),
     });
     await setCachedDay(date, content);
     res.status(200).json(content);
